@@ -50,3 +50,38 @@ Click the mouse to jump the icon. Avoid the spikes and thorns. Get as far as you
 ### Limitations
 You can’t play it in mobile
 
+## Before Using the File
+In order to open the file, follow the step by step instructions below:
+Note: this file will not work if you dont have xampp installed on your desktop.
+
+1. Download the zipped code in this github repository and extract it.
+2. Move the file in C:\xampp\htdocs.
+3. Open http://localhost/phpmyadmin. Make sure that username is root and no password otherwise it will not work.
+4. In the SQL section type this query: `CREATE DATABASE gwdb;`.
+5. Click on the new generated database.Then on the SQL section type this query:
+`CREATE TABLE users
+(
+id int AUTO_INCREMENT,
+username varchar(255),
+email varchar(255),
+pass varchar(255),
+age int,
+job varchar(255),
+birthdate datetime,
+birthplace varchar(255),
+address varchar(255),
+FruitCatch int,
+BalloonPop int,
+ShipDestroyer int,
+ColorBallFlap int,
+CubeJump int,
+Game1Theme int,
+Game2Theme int,
+Game3Weapon int,
+Game4Ball int,
+Game5Icon int,
+Game5BG int,
+Game5Ground int,
+PRIMARY KEY (id)
+);`
+7. Then it will work now. To access a page just type the name "localhost" then followed by the directory from the htdocs folder.
