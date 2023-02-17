@@ -32,10 +32,10 @@ function BalloonPop(selectedTheme) {
     let collisionSound = new Audio("assets/Balloon Pop/Audio/Sound Effects/esm_8bit_explosion_heavy_with_voice_bomb_boom_blast_cannon_retro_old_school_classic_cartoon.mp3");
     let score = 0;
     let life = 3;
-    let gamestop = true;
-    let reset = true;
-    let reset2 = true;
-    let reset3 = true;
+    let state = 2;
+    let switchToGame = true;
+    let switchToMenu = true;
+    let switchToHighscore = true;
 
     function saveToDatabase() {
         const themeNumber = selectedTheme;
@@ -91,7 +91,7 @@ function BalloonPop(selectedTheme) {
                 buttonSound.pause();
                 buttonSound.currentTime = 0;
                 buttonSound.play();
-                reset3 = true;
+                state = 2;
             }
         }
     }
@@ -177,7 +177,7 @@ function BalloonPop(selectedTheme) {
                 buttonSound.pause();
                 buttonSound.currentTime = 0;
                 buttonSound.play();
-                gamestop = false;
+                state = 1;
             }
              
             if (x > this.leaderboardButton.x && 
@@ -188,7 +188,7 @@ function BalloonPop(selectedTheme) {
                 buttonSound.pause();
                 buttonSound.currentTime = 0;
                 buttonSound.play();
-                reset3 = false;
+                state = 3;
             }
         }
     }
@@ -220,7 +220,7 @@ function BalloonPop(selectedTheme) {
                     life--;
                     if (life <= 0) {
                         ajax();
-                        gamestop = true;
+                        state = 2;
                     }
                 }
             });
@@ -240,6 +240,11 @@ function BalloonPop(selectedTheme) {
             this.explosions.forEach(object => {
                 object.draw();
             });
+
+            ctx.font = '20px sans-serif';
+            ctx.fillStyle = "black";
+            ctx.fillText("Score: " + score, 50, 30);
+            ctx.fillText("Life: " + life, 50, 55);
         }
         createBalloon(){
             const bln = document.querySelectorAll("#bln");
@@ -271,6 +276,22 @@ function BalloonPop(selectedTheme) {
                     }
                 }
             });
+        }
+        resetGame(){
+            this.createBackground();
+            score = 0;
+            life = 3;
+            for(let i=0; i<3; i++){
+                this.backgrounds[i].x1 = 0;
+                this.backgrounds[i].x2 = this.backgrounds[i].width;
+            }
+            this.balloonTimer = 0;
+            for(let j=0; j<this.balloons.length; j++){
+                this.balloons.pop();
+            }
+            this.balloons = this.balloons.filter(() => false);
+            this.createBalloon();
+
         }
     }
 
@@ -384,23 +405,6 @@ function BalloonPop(selectedTheme) {
         myhighscore = new Highscore(data, canvas.width, canvas.height);
     }
 
-    function resetGame(){
-        mygame.createBackground();
-        score = 0;
-        life = 3;
-        for(let i=0; i<3; i++){
-            mygame.backgrounds[i].x1 = 0;
-            mygame.backgrounds[i].x2 = mygame.backgrounds[i].width;
-        }
-        mygame.balloonTimer = 0;
-        for(let j=0; j<mygame.balloons.length; j++){
-            mygame.balloons.pop();
-        }
-        mygame.balloons = mygame.balloons.filter(() => false);
-        mygame.createBalloon();
-
-    }
-
     function ajax() {
         $.ajax({
             type: "POST",
@@ -423,19 +427,11 @@ function BalloonPop(selectedTheme) {
             }
         });
     }
-
-    function showScore(){
-        ctx.font = '20px sans-serif';
-        ctx.fillStyle = "black";
-        ctx.fillText("Score: " + score, 50, 30);
-        ctx.fillText("Life: " + life, 50, 55);
-    }
     
     function renderGame() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         mygame.update();
         mygame.draw();
-        showScore();
     }
     
     function renderMenu() {
@@ -449,38 +445,47 @@ function BalloonPop(selectedTheme) {
     }
 
     function animate() {
-        if (!gamestop) {
-            if (reset) {
-                resetGame();
-                gameSound.play();
-                gameSound.addEventListener("ended", function() {
-                    gameSound.currentTime = 0;
+        switch(state) {
+            case 1:
+                if(switchToGame) {
+                    mygame.resetGame();
                     gameSound.play();
-                });
-                reset = false;
-            }
-            reset2 = true;
-            renderGame();
-        } else {
-            if (reset2) {
-                gameSound.pause();
-                gameSound.currentTime = 0;
-                ajax2();
-                reset2 = false;
-            }
-            reset = true;
-            if (!reset3) {
-                menuSound.play();
-                menuSound.addEventListener("ended", function() {
+                    gameSound.addEventListener("ended", function() {
+                        gameSound.currentTime = 0;
+                        gameSound.play();
+                    });
+                    switchToGame = false;
+                }
+                switchToHighscore = true;
+                switchToMenu = true;
+                renderGame();
+                break;
+            case 2:
+                if(switchToMenu) {
+                    ajax2();
+                    gameSound.pause();
+                    gameSound.currentTime = 0;
+                    menuSound.pause();
                     menuSound.currentTime = 0;
-                    menuSound.play();
-                });
-                renderHighscore();
-            } else {
-                menuSound.pause();
-                menuSound.currentTime = 0;
+                    switchToMenu = false;
+                }
+                switchToHighscore = true;
+                switchToGame = true;
                 renderMenu();
-            }
+                break;
+            case 3:
+                if(switchToHighscore) {
+                    menuSound.play();
+                    menuSound.addEventListener("ended", function() {
+                        menuSound.currentTime = 0;
+                        menuSound.play();
+                    });
+                    switchToHighscore = false;
+                }
+                switchToMenu = true;
+                switchToGame = true;
+                renderHighscore();
+                break;
         }
         requestAnimationFrame(animate);
     }
@@ -496,10 +501,10 @@ function BalloonPop(selectedTheme) {
         const rect = canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
-        if (gamestop && reset3) {
+        if (state == 2) {
             mymenu.handleClick(x, y);
         }
-        if (gamestop && !reset3) {
+        if (state == 3) {
             myhighscore.handleClick(x, y);
         }
     });

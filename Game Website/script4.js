@@ -27,10 +27,10 @@ function ColorBallFlap(selectedColor) {
     let buttonSound = new Audio("assets/ColorBall Flap/Audio/Sound Effects/zapsplat_multimedia_button_click_fast_short_002_79286.mp3");
     let flapSound = new Audio("assets/ColorBall Flap/Audio/Sound Effects/zapsplat_cartoon_very_fast_whoosh_swoosh_swipe_or_snatch_005_89384.mp3");
     let score = 0;
-    let gamestop = true;
-    let reset = true;
-    let reset2 = true;
-    let reset3 = true;
+    let state = 2;
+    let switchToGame = true;
+    let switchToMenu = true;
+    let switchToHighscore = true;
 
     function saveToDatabase() {
         const colorNumber = selectedColor;
@@ -103,7 +103,7 @@ function ColorBallFlap(selectedColor) {
                 buttonSound.pause();
                 buttonSound.currentTime = 0;
                 buttonSound.play();
-                reset3 = true;
+                state = 2;
             }
         }
     }
@@ -193,7 +193,7 @@ function ColorBallFlap(selectedColor) {
                 buttonSound.pause();
                 buttonSound.currentTime = 0;
                 buttonSound.play();
-                gamestop = false;
+                state = 1;
             }
 
             if (x > this.leaderboardButton.x && 
@@ -204,7 +204,7 @@ function ColorBallFlap(selectedColor) {
                 buttonSound.pause();
                 buttonSound.currentTime = 0;
                 buttonSound.play();
-                reset3 = false;
+                state = 3;
             }
         }
     }
@@ -238,6 +238,10 @@ function ColorBallFlap(selectedColor) {
             this.obstacles.forEach(object => {
                 object.draw(this.camera);
             });
+
+            ctx.font = '20px sans-serif';
+            ctx.fillStyle = "white";
+            ctx.fillText(score, this.cwidth / 2, 30);
         }
         createObstacle() {
             this.obstacles.push(new Obstacle(colors[selectedColor].obstacleColor, this.obstacleY, this.cwidth, this.cheight));
@@ -253,7 +257,7 @@ function ColorBallFlap(selectedColor) {
                             score = Math.floor(this.ball.score / 200 - 1);
                         } else {
                             ajax();
-                            gamestop = true;
+                            state = 2;
                         }
                     }
                     if (this.ball.x + this.ball.size >= obstacle.x2[obstacle.direction] + ((obstacle.cwidth / 4) * i) &&
@@ -264,11 +268,26 @@ function ColorBallFlap(selectedColor) {
                             score = Math.floor(this.ball.score / 200 - 1);
                         } else {
                             ajax();
-                            gamestop = true;
+                            state = 2;
                         }
                     }
                 }
             });
+        }
+        resetGame(){
+            score = 0;
+            this.ball.x = (this.cwidth - this.ball.size) / 2;
+            this.ball.y = this.cheight - this.ball.size;
+            this.ball.obstacleCreation = 0;
+            this.ball.score = 0;
+            this.ball.color = colors[selectedColor].ballColor;
+            for(let i=0; i<this.obstacles.length; i++){
+                this.obstacles.pop();
+            }
+            this.obstacles = this.obstacles.filter(() => false);
+            this.obstacleY = this.cheight - 450;
+            this.createObstacle();
+            this.obstacleY -= 200;
         }
     }
 
@@ -420,22 +439,6 @@ function ColorBallFlap(selectedColor) {
         myhighscore = new Highscore(data, canvas.width, canvas.height);
     }
 
-    function resetGame(){
-        score = 0;
-        mygame.ball.x = (canvas.width/2)-(mygame.ball.size/2);
-        mygame.ball.y = canvas.height - mygame.ball.size;
-        mygame.ball.obstacleCreation = 0;
-        mygame.ball.score = 0;
-        mygame.ball.color = colors[selectedColor].ballColor;
-        for(let i=0; i<mygame.obstacles.length; i++){
-            mygame.obstacles.pop();
-        }
-        mygame.obstacles = mygame.obstacles.filter(() => false);
-        mygame.obstacleY = canvas.height - 450;
-        mygame.createObstacle();
-        mygame.obstacleY -= 200;
-    }
-
     function ajax() {
         $.ajax({
             type: "POST",
@@ -459,17 +462,10 @@ function ColorBallFlap(selectedColor) {
         });
     }
 
-    function showScore(){
-        ctx.font = '20px sans-serif';
-        ctx.fillStyle = "white";
-        ctx.fillText(score, canvas.width / 2, 30);
-    }
-
     function renderGame() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         mygame.update();
         mygame.draw();
-        showScore();
     }
     
     function renderMenu() {
@@ -483,44 +479,53 @@ function ColorBallFlap(selectedColor) {
     }
 
     function animate() {
-        if (!gamestop) {
-            if (reset) {
-                resetGame();
-                gameSound.play();
-                gameSound.addEventListener("ended", function() {
-                    gameSound.currentTime = 0;
+        switch(state) {
+            case 1:
+                if(switchToGame) {
+                    mygame.resetGame();
                     gameSound.play();
-                });
-                reset = false;
-            }
-            reset2 = true;
-            renderGame();
-        } else {
-            if (reset2) {
-                gameSound.pause();
-                gameSound.currentTime = 0;
-                ajax2();
-                reset2 = false;
-            }
-            reset = true;
-            if (!reset3) {
-                menuSound.play();
-                menuSound.addEventListener("ended", function() {
+                    gameSound.addEventListener("ended", function() {
+                        gameSound.currentTime = 0;
+                        gameSound.play();
+                    });
+                    switchToGame = false;
+                }
+                switchToHighscore = true;
+                switchToMenu = true;
+                renderGame();
+                break;
+            case 2:
+                if(switchToMenu) {
+                    ajax2();
+                    gameSound.pause();
+                    gameSound.currentTime = 0;
+                    menuSound.pause();
                     menuSound.currentTime = 0;
-                    menuSound.play();
-                });
-                renderHighscore();
-            } else {
-                menuSound.pause();
-                menuSound.currentTime = 0;
+                    switchToMenu = false;
+                }
+                switchToHighscore = true;
+                switchToGame = true;
                 renderMenu();
-            }
+                break;
+            case 3:
+                if(switchToHighscore) {
+                    menuSound.play();
+                    menuSound.addEventListener("ended", function() {
+                        menuSound.currentTime = 0;
+                        menuSound.play();
+                    });
+                    switchToHighscore = false;
+                }
+                switchToMenu = true;
+                switchToGame = true;
+                renderHighscore();
+                break;
         }
         requestAnimationFrame(animate);
     }
 
     canvas.addEventListener("click", function () {
-        if (!gamestop) {
+        if (state == 1) {
             mygame.ball.flap();
         }
     });
@@ -529,10 +534,10 @@ function ColorBallFlap(selectedColor) {
         const rect = canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
-        if (gamestop && reset3) {
+        if (state == 2) {
             mymenu.handleClick(x, y);
         }
-        if (gamestop && !reset3) {
+        if (state == 3) {
             myhighscore.handleClick(x, y);
         }
     });

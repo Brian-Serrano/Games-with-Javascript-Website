@@ -32,10 +32,10 @@ function FruitCatch(selectedTheme) {
     let collisionSound = new Audio("assets/Fruit Catch/Audio/Sound Effects/zapsplat_cartoon_very_fast_whoosh_swoosh_swipe_or_snatch_002_89381.mp3");
     let score = 0;
     let life = 3;
-    let gamestop = true;
-    let reset = true;
-    let reset2 = true;
-    let reset3 = true;
+    let state = 2;
+    let switchToGame = true;
+    let switchToMenu = true;
+    let switchToHighscore = true;
     
     function saveToDatabase() {
         const themeNumber = selectedTheme;
@@ -91,7 +91,7 @@ function FruitCatch(selectedTheme) {
                 buttonSound.pause();
                 buttonSound.currentTime = 0;
                 buttonSound.play();
-                reset3 = true;
+                state = 2;
             }
         }
     }
@@ -177,7 +177,7 @@ function FruitCatch(selectedTheme) {
                 buttonSound.pause();
                 buttonSound.currentTime = 0;
                 buttonSound.play();
-                gamestop = false;
+                state = 1;
             }
             
             if (x > this.leaderboardButton.x && 
@@ -188,7 +188,7 @@ function FruitCatch(selectedTheme) {
                 buttonSound.pause();
                 buttonSound.currentTime = 0;
                 buttonSound.play();
-                reset3 = false;
+                state = 3;
             }
         }
     }
@@ -254,6 +254,11 @@ function FruitCatch(selectedTheme) {
                 object.draw();
             });
             this.basket.draw();
+
+            ctx.font = '20px sans-serif';
+            ctx.fillStyle = "black";
+            ctx.fillText("Score: " + score, 50, 30);
+            ctx.fillText("Life: " + life, 50, 55);
         }
         collision(){
             this.foods.forEach(object => {
@@ -262,7 +267,7 @@ function FruitCatch(selectedTheme) {
                     life--;
                     if(life <= 0){
                         ajax();
-                        gamestop = true;
+                        state = 2;
                     }
                 }
                 if(
@@ -279,15 +284,32 @@ function FruitCatch(selectedTheme) {
                 }
             });
         }
-        createFood(){
+        createFood() {
             this.foods.push(new Food(this.cwidth, this.cheight));
         }
-        createBackground(){
+        createBackground() {
             const img = theme[selectedTheme];
             const speeds = [0.6, 0.8, 1, 1.2, 1.4];
             for(let i=0; i<img.length; i++){
                 this.backgrounds.push(new Background(img[i], speeds[i], this.cwidth, this.cheight));
             }
+        }
+        resetGame() {
+            this.createBackground();
+            score = 0;
+            life = 3;
+            for(let i=0; i<5; i++){
+                this.backgrounds[i].x1 = 0;
+                this.backgrounds[i].x2 = this.backgrounds[i].width;
+            }
+            this.basket.x = (this.cwidth - this.basket.width) / 2;
+            this.foodTimer = 0;
+            for(let j=0; j<this.foods.length; j++){
+                this.foods.pop();
+            }
+            this.foods = this.foods.filter(() => false);  
+            this.createFood();
+    
         }
     }
 
@@ -378,24 +400,6 @@ function FruitCatch(selectedTheme) {
         myhighscore = new Highscore(data, canvas.width, canvas.height);
     }
 
-    function resetGame(){
-        mygame.createBackground();
-        score = 0;
-        life = 3;
-        for(let i=0; i<5; i++){
-            mygame.backgrounds[i].x1 = 0;
-            mygame.backgrounds[i].x2 = mygame.backgrounds[i].width;
-        }
-        mygame.basket.x = (canvas.width/2)-(mygame.basket.width/2);
-        mygame.foodTimer = 0;
-        for(let j=0; j<mygame.foods.length; j++){
-            mygame.foods.pop();
-        }
-        mygame.foods = mygame.foods.filter(() => false);  
-        mygame.createFood();
-
-    }
-
     function ajax() {
         $.ajax({
             type: "POST",
@@ -418,19 +422,11 @@ function FruitCatch(selectedTheme) {
             }
         });
     }
-
-    function showScore(){
-        ctx.font = '20px sans-serif';
-        ctx.fillStyle = "black";
-        ctx.fillText("Score: " + score, 50, 30);
-        ctx.fillText("Life: " + life, 50, 55);
-    }
     
     function renderGame() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         mygame.update();
         mygame.draw();
-        showScore();
     }
     
     function renderMenu() {
@@ -444,38 +440,47 @@ function FruitCatch(selectedTheme) {
     }
 
     function animate() {
-        if (!gamestop) {
-            if (reset) {
-                resetGame();
-                gameSound.play();
-                gameSound.addEventListener("ended", function() {
-                    gameSound.currentTime = 0;
+        switch(state) {
+            case 1:
+                if(switchToGame) {
+                    mygame.resetGame();
                     gameSound.play();
-                });
-                reset = false;
-            }
-            reset2 = true;
-            renderGame();
-        } else {
-            if (reset2) {
-                gameSound.pause();
-                gameSound.currentTime = 0;
-                ajax2();
-                reset2 = false;
-            }
-            reset = true;
-            if (!reset3) {
-                renderHighscore();
-                menuSound.play();
-                menuSound.addEventListener("ended", function() {
+                    gameSound.addEventListener("ended", function() {
+                        gameSound.currentTime = 0;
+                        gameSound.play();
+                    });
+                    switchToGame = false;
+                }
+                switchToHighscore = true;
+                switchToMenu = true;
+                renderGame();
+                break;
+            case 2:
+                if(switchToMenu) {
+                    ajax2();
+                    gameSound.pause();
+                    gameSound.currentTime = 0;
+                    menuSound.pause();
                     menuSound.currentTime = 0;
-                    menuSound.play();
-                });
-            } else {
-                menuSound.pause();
-                menuSound.currentTime = 0;
+                    switchToMenu = false;
+                }
+                switchToHighscore = true;
+                switchToGame = true;
                 renderMenu();
-            }
+                break;
+            case 3:
+                if(switchToHighscore) {
+                    menuSound.play();
+                    menuSound.addEventListener("ended", function() {
+                        menuSound.currentTime = 0;
+                        menuSound.play();
+                    });
+                    switchToHighscore = false;
+                }
+                switchToMenu = true;
+                switchToGame = true;
+                renderHighscore();
+                break;
         }
         requestAnimationFrame(animate);
     }
@@ -484,10 +489,10 @@ function FruitCatch(selectedTheme) {
         const rect = canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
-        if (gamestop && reset3) {
+        if (state == 2) {
             mymenu.handleClick(x, y);
         }
-        if (gamestop && !reset3) {
+        if (state == 3) {
             myhighscore.handleClick(x, y);
         }
     });

@@ -33,11 +33,12 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
     let buttonSound = new Audio("assets/Cube Jump/Audio/Sound Effects/zapsplat_multimedia_button_click_fast_short_002_79286.mp3");
     let jumpSound = new Audio("assets/Cube Jump/Audio/Sound Effects/zapsplat_cartoon_high_pitched_twang_prick_poke_spring_007_72923.mp3");
     let score = 0;
-    let gamestop = true;
-    let reset = true;
-    let reset2 = true;
-    let reset3 = true;
-    let reset4 = true;
+    let state = 2;
+    let switchToGame = true;
+    let switchToMenu = true;
+    let switchToHighscore = true;
+    let switchToSettings = true;
+    let markForJump = false;
 
     function saveToDatabase() {
         const xhr = new XMLHttpRequest();
@@ -172,7 +173,7 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
                 buttonSound.pause();
                 buttonSound.currentTime = 0;
                 buttonSound.play();
-                reset4 = true;
+                state = 2;
             }
         }
     }
@@ -219,7 +220,7 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
                 buttonSound.pause();
                 buttonSound.currentTime = 0;
                 buttonSound.play();
-                reset3 = true;
+                state = 2;
             }
         }
     }
@@ -314,7 +315,7 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
                 buttonSound.pause();
                 buttonSound.currentTime = 0;
                 buttonSound.play();
-                gamestop = false;
+                state = 1;
             }
 
             if (x > this.leaderboardButton.x && 
@@ -325,7 +326,7 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
                 buttonSound.pause();
                 buttonSound.currentTime = 0;
                 buttonSound.play();
-                reset3 = false;
+                state = 3;
             }
 
             if (x > this.settingsButton.x && 
@@ -336,7 +337,7 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
                 buttonSound.pause();
                 buttonSound.currentTime = 0;
                 buttonSound.play();
-                reset4 = false;
+                state = 4;
             }
         }
     }
@@ -372,6 +373,10 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
             this.obstacles.forEach(object => {
                 object.draw(this.camera);
             });
+            
+            ctx.font = '20px sans-serif';
+            ctx.fillStyle = "white";
+            ctx.fillText(score, this.cwidth / 2, 30);
         }
         async fetchArray(file) {
             const response = await fetch(file);
@@ -405,44 +410,65 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
                         this.cube.y = block.y - this.cube.height;
                     } else if (block.isCollidingWith(this.cube)) {
                         ajax();
-                        gamestop = true;
+                        state = 2;
                     }
                 });
                 obstacle.spikes.forEach(spike => {
                     if(spike.isCollidingWith(this.cube)) {
                         ajax();
-                        gamestop = true;
+                        state = 2;
                     }
                 });
                 obstacle.spikesflip.forEach(spike => {
                     if(spike.isCollidingWith(this.cube)) {
                         ajax();
-                        gamestop = true;
+                        state = 2;
                     }
                 });
                 obstacle.thorns.forEach(thorn => {
                     if(thorn.isCollidingWith(this.cube)) {
                         ajax();
-                        gamestop = true;
+                        state = 2;
                     }
                 });
             });
         }
         
         jump() {
+            console.log("Is this works");
             this.obstacles.forEach(obstacle => {
                 obstacle.blocks.forEach(block => {
                     if (
                         this.cube.y + this.cube.height >= this.cube.cheight - 100 || 
                         this.cube.y == block.y - this.cube.height
                         ) {
-                        this.cube.velocity = -26;
-                        jumpSound.pause();
-                        jumpSound.currentTime = 0;
-                        jumpSound.play();
+                        if (!markForJump) {
+                            this.cube.velocity = -26;
+                            jumpSound.pause();
+                            jumpSound.currentTime = 0;
+                            jumpSound.play();
+                            markForJump = true;
+                        }
                     }
                 });
             });
+            markForJump = false
+        }
+
+        resetGame() {
+            score = 0;
+            this.ground.x1 = 0;
+            this.ground.x2 = this.cwidth;
+            this.cube.x = 0 - this.cube.width;
+            this.cube.y = this.cheight - this.cube.height - 100;
+            this.cube.obstacleCreation = 0;
+            this.obstacleNumber = 0;
+            this.cube.image = icons[selectedIcon];
+            for(let i=0; i<this.obstacles.length; i++){
+                this.obstacles.pop();
+            }
+            this.obstacles = this.obstacles.filter(() => false);
+            this.createObstacle();
         }
     }
 
@@ -706,22 +732,6 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
         myhighscore = new Highscore(data, canvas.width, canvas.height);
     }
 
-    function resetGame(){
-        score = 0;
-        mygame.ground.x1 = 0;
-        mygame.ground.x2 = canvas.width;
-        mygame.cube.x = 0 - mygame.cube.width;
-        mygame.cube.y = canvas.height - mygame.cube.height - 100;
-        mygame.cube.obstacleCreation = 0;
-        mygame.obstacleNumber = 0;
-        mygame.cube.image = icons[selectedIcon];
-        for(let i=0; i<mygame.obstacles.length; i++){
-            mygame.obstacles.pop();
-        }
-        mygame.obstacles = mygame.obstacles.filter(() => false);
-        mygame.createObstacle();
-    }
-
     function ajax() {
         $.ajax({
             type: "POST",
@@ -744,18 +754,11 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
             }
         });
     }
-
-    function showScore(){
-        ctx.font = '20px sans-serif';
-        ctx.fillStyle = "white";
-        ctx.fillText(score, canvas.width / 2, 30);
-    }
     
     function renderGame() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         mygame.update();
         mygame.draw();
-        showScore();
     }
     
     function renderMenu() {
@@ -774,46 +777,70 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
     }
 
     function animate() {
-        if (!gamestop) {
-            if (reset) {
-                resetGame();
-                gameSound.play();
-                gameSound.addEventListener("ended", function() {
-                    gameSound.currentTime = 0;
+        switch(state) {
+            case 1:
+                if(switchToGame) {
+                    mygame.resetGame();
                     gameSound.play();
-                });
-                reset = false;
-            }
-            reset2 = true;
-            renderGame();
-        } else {
-            if (reset2) {
-                gameSound.pause();
-                gameSound.currentTime = 0;
-                ajax2();
-                reset2 = false;
-            }
-            reset = true;
-            if (!reset3) {
-                menuSound.play();
-                menuSound.addEventListener("ended", function() {
+                    gameSound.addEventListener("ended", function() {
+                        gameSound.currentTime = 0;
+                        gameSound.play();
+                    });
+                    switchToGame = false;
+                }
+                switchToSettings = true;
+                switchToHighscore = true;
+                switchToMenu = true;
+                renderGame();
+                break;
+            case 2:
+                if(switchToMenu) {
+                    ajax2();
+                    gameSound.pause();
+                    gameSound.currentTime = 0;
+                    menuSound.pause();
                     menuSound.currentTime = 0;
-                    menuSound.play();
-                });
-                renderHighscore();
-            } else if (!reset4) {
-                renderSettings();
-            } else if (reset3 && reset4) {
-                menuSound.pause();
-                menuSound.currentTime = 0;
+                    switchToMenu = false;
+                }
+                switchToSettings = true;
+                switchToHighscore = true;
+                switchToGame = true;
                 renderMenu();
-            }
+                break;
+            case 3:
+                if(switchToHighscore) {
+                    menuSound.play();
+                    menuSound.addEventListener("ended", function() {
+                        menuSound.currentTime = 0;
+                        menuSound.play();
+                    });
+                    switchToHighscore = false;
+                }
+                switchToSettings = true;
+                switchToMenu = true;
+                switchToGame = true;
+                renderHighscore();
+                break;
+            case 4:
+                if(switchToSettings) {
+                    menuSound.play();
+                    menuSound.addEventListener("ended", function() {
+                        menuSound.currentTime = 0;
+                        menuSound.play();
+                    });
+                    switchToSettings = false;
+                }
+                switchToHighscore = true;
+                switchToMenu = true;
+                switchToGame = true;
+                renderSettings();
+                break;
         }
         requestAnimationFrame(animate);
     }
     
     canvas.addEventListener("click", function () {
-        if (!gamestop) {
+        if (state == 1) {
             mygame.jump();
         }
     });
@@ -822,13 +849,13 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
         const rect = canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
-        if (gamestop && reset3 && reset4) {
+        if (state == 2) {
             mymenu.handleClick(x, y);
         }
-        if (gamestop && !reset3) {
+        if (state == 3) {
             myhighscore.handleClick(x, y);
         }
-        if (gamestop && !reset4) {
+        if (state == 4) {
             mysettings.handleClick(x, y);
         }
     });

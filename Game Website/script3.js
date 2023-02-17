@@ -33,10 +33,10 @@ function ShipDestroyer(selectedWeapon) {
     let fireSounds = [fireSound1, fireSound2, fireSound3, fireSound4];
     let score = 0;
     let life = 4;
-    let gamestop = true;
-    let reset = true;
-    let reset2 = true;
-    let reset3 = true;
+    let state = 2;
+    let switchToGame = true;
+    let switchToMenu = true;
+    let switchToHighscore = true;
 
     function saveToDatabase() {
         const weaponNumber = selectedWeapon;
@@ -94,7 +94,7 @@ function ShipDestroyer(selectedWeapon) {
                 buttonSound.pause();
                 buttonSound.currentTime = 0;
                 buttonSound.play();
-                reset3 = true;
+                state = 2;
             }
         }
     }
@@ -183,7 +183,7 @@ function ShipDestroyer(selectedWeapon) {
                 buttonSound.pause();
                 buttonSound.currentTime = 0;
                 buttonSound.play();
-                gamestop = false;
+                state = 1;
             }
             
             if (x > this.leaderboardButton.x && 
@@ -194,7 +194,7 @@ function ShipDestroyer(selectedWeapon) {
                 buttonSound.pause();
                 buttonSound.currentTime = 0;
                 buttonSound.play();
-                reset3 = false;
+                state = 3;
             }
         }
     }
@@ -241,6 +241,11 @@ function ShipDestroyer(selectedWeapon) {
             this.enemies.forEach(object => {
                 object.draw();
             });
+            
+            ctx.font = '20px sans-serif';
+            ctx.fillStyle = "black";
+            ctx.fillText("Score: " + score, 50, 30);
+            ctx.fillText("Life: " + life, 50, 55);
         }
         createEnemy(){
             this.enemies.push(new EnemyShip(this.cwidth, this.cheight));
@@ -267,7 +272,7 @@ function ShipDestroyer(selectedWeapon) {
                     life--;
                     if (life <= 0) {
                         ajax();
-                        gamestop = true;
+                        state = 2;
                     }
                 }
         
@@ -285,7 +290,7 @@ function ShipDestroyer(selectedWeapon) {
                             explosionSound.currentTime = 0;
                             explosionSound.play();
                             ajax();
-                            gamestop = true;
+                            state = 2;
                         }
                     }
                 });
@@ -314,6 +319,29 @@ function ShipDestroyer(selectedWeapon) {
             });
             this.ship.bullets = this.ship.bullets.filter(bullet => !bullet.delete);
             this.enemies = this.enemies.filter(enemy => !enemy.delete);
+        }
+        resetGame(){
+            score = 0;
+            life = 4;
+            for(let i=0; i<3; i++){
+                this.backgrounds[i].x1 = 0;
+                this.backgrounds[i].x2 = this.backgrounds[i].width;
+            }
+            this.ship.x = (this.cwidth - this.ship.width) / 2;
+            this.ship.y = this.cheight - this.ship.height;
+            this.ship.bulletTimer = 0;
+            for(let j=0; j<this.ship.bullets.length; j++){
+                this.ship.bullets.pop();
+            }
+            this.ship.bullets = this.ship.bullets.filter(() => false);
+            this.enemyTimer = 0;
+            for(let j=0; j<this.enemies.length; j++){
+                this.enemies.pop();
+            }
+            this.enemies = this.enemies.filter(() => false);
+            
+            this.ship.createBullet();
+            this.createEnemy();
         }
     }
 
@@ -579,30 +607,6 @@ function ShipDestroyer(selectedWeapon) {
         myhighscore = new Highscore(data, canvas.width, canvas.height);
     }
 
-    function resetGame(){
-        score = 0;
-        life = 4;
-        for(let i=0; i<3; i++){
-            mygame.backgrounds[i].x1 = 0;
-            mygame.backgrounds[i].x2 = mygame.backgrounds[i].width;
-        }
-        mygame.ship.x = (canvas.width/2)-(mygame.ship.width/2);
-        mygame.ship.y = canvas.height - mygame.ship.height;
-        mygame.ship.bulletTimer = 0;
-        for(let j=0; j<mygame.ship.bullets.length; j++){
-            mygame.ship.bullets.pop();
-        }
-        mygame.ship.bullets = mygame.ship.bullets.filter(() => false);
-        mygame.enemyTimer = 0;
-        for(let j=0; j<mygame.enemies.length; j++){
-            mygame.enemies.pop();
-        }
-        mygame.enemies = mygame.enemies.filter(() => false);
-        
-        mygame.ship.createBullet();
-        mygame.createEnemy();
-    }
-
     function ajax() {
         $.ajax({
             type: "POST",
@@ -625,19 +629,11 @@ function ShipDestroyer(selectedWeapon) {
             }
         });
     }
-
-    function showScore(){
-        ctx.font = '20px sans-serif';
-        ctx.fillStyle = "black";
-        ctx.fillText("Score: " + score, 50, 30);
-        ctx.fillText("Life: " + life, 50, 55);
-    }
     
     function renderGame() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         mygame.update();
         mygame.draw();
-        showScore();
     }
     
     function renderMenu() {
@@ -651,38 +647,47 @@ function ShipDestroyer(selectedWeapon) {
     }
 
     function animate() {
-        if (!gamestop) {
-            if (reset) {
-                resetGame();
-                gameSound.play();
-                gameSound.addEventListener("ended", function() {
-                    gameSound.currentTime = 0;
+        switch(state) {
+            case 1:
+                if(switchToGame) {
+                    mygame.resetGame();
                     gameSound.play();
-                });
-                reset = false;
-            }
-            reset2 = true;
-            renderGame();
-        } else {
-            if (reset2) {
-                gameSound.pause();
-                gameSound.currentTime = 0;
-                ajax2();
-                reset2 = false;
-            }
-            reset = true;
-            if (!reset3) {
-                menuSound.play();
-                menuSound.addEventListener("ended", function() {
+                    gameSound.addEventListener("ended", function() {
+                        gameSound.currentTime = 0;
+                        gameSound.play();
+                    });
+                    switchToGame = false;
+                }
+                switchToHighscore = true;
+                switchToMenu = true;
+                renderGame();
+                break;
+            case 2:
+                if(switchToMenu) {
+                    ajax2();
+                    gameSound.pause();
+                    gameSound.currentTime = 0;
+                    menuSound.pause();
                     menuSound.currentTime = 0;
-                    menuSound.play();
-                });
-                renderHighscore();
-            } else {
-                menuSound.pause();
-                menuSound.currentTime = 0;
+                    switchToMenu = false;
+                }
+                switchToHighscore = true;
+                switchToGame = true;
                 renderMenu();
-            }
+                break;
+            case 3:
+                if(switchToHighscore) {
+                    menuSound.play();
+                    menuSound.addEventListener("ended", function() {
+                        menuSound.currentTime = 0;
+                        menuSound.play();
+                    });
+                    switchToHighscore = false;
+                }
+                switchToMenu = true;
+                switchToGame = true;
+                renderHighscore();
+                break;
         }
         requestAnimationFrame(animate);
     }
@@ -696,10 +701,10 @@ function ShipDestroyer(selectedWeapon) {
         const rect = canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
-        if (gamestop && reset3) {
+        if (state == 2) {
             mymenu.handleClick(x, y);
         }
-        if (gamestop && !reset3) {
+        if (state == 3) {
             myhighscore.handleClick(x, y);
         }
     });
