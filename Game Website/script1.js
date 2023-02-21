@@ -25,6 +25,9 @@ function FruitCatch(selectedTheme) {
     const startButton = document.getElementById("start-button");
     const backButton = document.getElementById("back-button");
     const leaderboardButton = document.getElementById("leaderboard-button");
+    const continueButton = document.getElementById("continue-button");
+    const restartButton = document.getElementById("restart-button");
+    const homeButton = document.getElementById("home-button");
     const leaderboardBackground = document.getElementById("leaderboard-background");
     let menuSound = new Audio("assets/Fruit Catch/Audio/Menu Audio/Toes and Water.mp3");
     let gameSound = new Audio("assets/Fruit Catch/Audio/Game Audio/Danish Mega Pony v. 4 OST - Track 02 (Fire Level).mp3");
@@ -36,6 +39,8 @@ function FruitCatch(selectedTheme) {
     let switchToGame = true;
     let switchToMenu = true;
     let switchToHighscore = true;
+    let switchToPause = true;
+    let continued = true;
     
     function saveToDatabase() {
         const themeNumber = selectedTheme;
@@ -47,6 +52,84 @@ function FruitCatch(selectedTheme) {
     
     window.onbeforeunload = function() {
         saveToDatabase();
+    }
+
+    class Pause {
+        constructor(cwidth, cheight) {
+            this.cwidth = cwidth;
+            this.cheight = cheight;
+            this.x = this.cwidth / 2;
+            this.y = this.cheight / 2;
+            this.themes = document.querySelectorAll("#theme");
+            this.continueButton = {
+                image: continueButton,
+                width: 40,
+                height: 40,
+                x: this.cwidth - 60,
+                y: 20
+            };
+            this.restartButton = {
+                image: restartButton,
+                width: 40,
+                height: 40,
+                x: this.cwidth - 60,
+                y: 70
+            };
+            this.homeButton = {
+                image: homeButton,
+                width: 40,
+                height: 40,
+                x: this.cwidth - 60,
+                y: 120
+            };
+        }
+
+        render() {
+            ctx.drawImage(this.themes[selectedTheme], 0, 0, this.cwidth, this.cheight);
+            ctx.drawImage(this.continueButton.image, this.continueButton.x, this.continueButton.y, this.continueButton.width, this.continueButton.height);
+            ctx.drawImage(this.restartButton.image, this.restartButton.x, this.restartButton.y, this.restartButton.width, this.restartButton.height);
+            ctx.drawImage(this.homeButton.image, this.homeButton.x, this.homeButton.y, this.homeButton.width, this.homeButton.height);
+
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 40px impact';
+            ctx.fillText('PAUSED', this.x, this.y);
+        }
+
+        handleClick(x, y) {
+            if (x > this.continueButton.x && 
+                x < this.continueButton.x + this.continueButton.width && 
+                y > this.continueButton.y && 
+                y < this.continueButton.y + this.continueButton.height
+            ) {
+                buttonSound.pause();
+                buttonSound.currentTime = 0;
+                buttonSound.play();
+                continued = false;
+                state = 1;
+            }
+
+            if (x > this.restartButton.x && 
+                x < this.restartButton.x + this.restartButton.width && 
+                y > this.restartButton.y && 
+                y < this.restartButton.y + this.restartButton.height
+            ) {
+                buttonSound.pause();
+                buttonSound.currentTime = 0;
+                buttonSound.play();
+                state = 1;
+            }
+            
+            if (x > this.homeButton.x && 
+                x < this.homeButton.x + this.homeButton.width && 
+                y > this.homeButton.y && 
+                y < this.homeButton.y + this.homeButton.height
+            ) {
+                buttonSound.pause();
+                buttonSound.currentTime = 0;
+                buttonSound.play();
+                state = 2;
+            }
+        }
     }
 
     class Highscore {
@@ -72,7 +155,7 @@ function FruitCatch(selectedTheme) {
             ctx.drawImage(this.backButton.image, this.backButton.x, this.backButton.y, this.backButton.width, this.backButton.height);
 
             ctx.fillStyle = 'white';
-            ctx.font = '14px sans-serif';
+            ctx.font = '14px impact';
             for(let i = 0; i < this.data.length; i++) {
                 ctx.textAlign = 'left';
                 ctx.fillText(this.data[i].username.toUpperCase(), this.x, this.y + i * 30);
@@ -123,8 +206,8 @@ function FruitCatch(selectedTheme) {
             ctx.fillStyle = 'black';
             ctx.drawImage(this.themes[selectedTheme], 0, 0, this.cwidth, this.cheight);
 
-            ctx.font = 'bold 40px arial';
-            ctx.fillText('Fruit Catch', this.x, this.y - 100);
+            ctx.font = 'bold 40px impact';
+            ctx.fillText('FRUIT CATCH', this.x, this.y - 100);
 
             ctx.beginPath();
             ctx.moveTo(this.x - 75, this.y);
@@ -142,7 +225,7 @@ function FruitCatch(selectedTheme) {
 
             ctx.drawImage(this.leaderboardButton.image, this.leaderboardButton.x, this.leaderboardButton.y, this.leaderboardButton.width, this.leaderboardButton.height);
             ctx.drawImage(this.startButton.image, this.startButton.x - this.startButton.width / 2, this.startButton.y - this.startButton.height / 2, this.startButton.width, this.startButton.height);
-            ctx.font = 'bold 20px arial';
+            ctx.font = 'bold 20px impact';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
         }
@@ -228,6 +311,13 @@ function FruitCatch(selectedTheme) {
             this.foodTimer = 0;
             this.foodInterval = 100;
             this.basket = new Basket(this.cwidth, this.cheight);
+            this.backButton = {
+                image: backButton,
+                x: this.cwidth - 60,
+                y: 20,
+                width: 40,
+                height: 40
+            }
         }
         update(){
             this.backgrounds.forEach(object => {
@@ -255,10 +345,12 @@ function FruitCatch(selectedTheme) {
             });
             this.basket.draw();
 
-            ctx.font = '20px sans-serif';
+            ctx.drawImage(this.backButton.image, this.backButton.x, this.backButton.y, this.backButton.width, this.backButton.height);
+
+            ctx.font = '20px impact';
             ctx.fillStyle = "black";
-            ctx.fillText("Score: " + score, 50, 30);
-            ctx.fillText("Life: " + life, 50, 55);
+            ctx.fillText("SCORE: " + score, 50, 30);
+            ctx.fillText("LIFE: " + life, 50, 55);
         }
         collision(){
             this.foods.forEach(object => {
@@ -310,6 +402,18 @@ function FruitCatch(selectedTheme) {
             this.foods = this.foods.filter(() => false);  
             this.createFood();
     
+        }
+        handleClick(x, y) {
+            if (x > this.backButton.x && 
+                x < this.backButton.x + this.backButton.width && 
+                y > this.backButton.y && 
+                y < this.backButton.y + this.backButton.height
+            ) {
+                buttonSound.pause();
+                buttonSound.currentTime = 0;
+                buttonSound.play();
+                state = 4;
+            }
         }
     }
 
@@ -395,6 +499,7 @@ function FruitCatch(selectedTheme) {
     const mygame = new Game(canvas.width, canvas.height);
     const mymenu = new Menu(canvas.width / 2, canvas.height / 2, canvas.width, canvas.height);
     let myhighscore;
+    const mypause = new Pause(canvas.width, canvas.height);
 
     function setHighscore(data) {
         myhighscore = new Highscore(data, canvas.width, canvas.height);
@@ -439,18 +544,28 @@ function FruitCatch(selectedTheme) {
         myhighscore.render();
     }
 
+    function renderPause() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        mypause.render();
+    }
+
     function animate() {
         switch(state) {
             case 1:
                 if(switchToGame) {
-                    mygame.resetGame();
+                    if(continued) {
+                        mygame.resetGame();
+                        gameSound.currentTime = 0;
+                    }
                     gameSound.play();
                     gameSound.addEventListener("ended", function() {
                         gameSound.currentTime = 0;
                         gameSound.play();
                     });
                     switchToGame = false;
+                    continued = true;
                 }
+                switchToPause = true;
                 switchToHighscore = true;
                 switchToMenu = true;
                 renderGame();
@@ -464,6 +579,7 @@ function FruitCatch(selectedTheme) {
                     menuSound.currentTime = 0;
                     switchToMenu = false;
                 }
+                switchToPause = true;
                 switchToHighscore = true;
                 switchToGame = true;
                 renderMenu();
@@ -477,9 +593,20 @@ function FruitCatch(selectedTheme) {
                     });
                     switchToHighscore = false;
                 }
+                switchToPause = true;
                 switchToMenu = true;
                 switchToGame = true;
                 renderHighscore();
+                break;
+            case 4:
+                if(switchToPause) {
+                    gameSound.pause();
+                    switchToPause = false;
+                }
+                switchToHighscore = true;
+                switchToMenu = true;
+                switchToGame = true;
+                renderPause();
                 break;
         }
         requestAnimationFrame(animate);
@@ -489,11 +616,19 @@ function FruitCatch(selectedTheme) {
         const rect = canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
-        if (state == 2) {
-            mymenu.handleClick(x, y);
-        }
-        if (state == 3) {
-            myhighscore.handleClick(x, y);
+        switch(state) {
+            case 1:
+                mygame.handleClick(x, y);
+                break;
+            case 2:
+                mymenu.handleClick(x, y);
+                break;
+            case 3:
+                myhighscore.handleClick(x, y);
+                break;
+            case 4:
+                mypause.handleClick(x, y);
+                break;
         }
     });
 

@@ -15,7 +15,7 @@ if (isset($_SESSION["id"])){
     <title>Document</title>
 </head>
 <style>
-    #start-button, #back-button, #leaderboard-button, #leaderboard-background {
+    .images {
         display: none;
     }
 </style>
@@ -28,10 +28,15 @@ if (isset($_SESSION["id"])){
                 <h1>ColorBall Flap</h1>
                 <canvas id="canvas" width="700px" height="500px"></canvas>
             </div>
-            <img src="assets/Buttons/start_button.png" id="start-button">
-            <img src="assets/Buttons/back_button.png" id="back-button">
-            <img src="assets/Buttons/leaderboard_button.png" id="leaderboard-button">
-            <img src="assets/ColorBall Flap/ColorBall_Flap_Leaderboard.png" id="leaderboard-background">
+            <div class="images">
+                <img src="assets/Buttons/start_button.png" id="start-button">
+                <img src="assets/Buttons/back_button.png" id="back-button">
+                <img src="assets/Buttons/leaderboard_button.png" id="leaderboard-button">
+                <img src="assets/Buttons/continue_button.png" id="continue-button">
+                <img src="assets/Buttons/restart_button.png" id="restart-button">
+                <img src="assets/Buttons/home_button.png" id="home-button">
+                <img src="assets/ColorBall Flap/ColorBall_Flap_Leaderboard.png" id="leaderboard-background">
+            </div>
         </div>
         <?php include "recommendaside.php"; ?>
 	</div>

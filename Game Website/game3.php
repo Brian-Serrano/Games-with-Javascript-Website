@@ -15,7 +15,7 @@ if (isset($_SESSION["id"])){
     <title>Document</title>
 </head>
 <style>
-    .spaceship, .spaceshipflip, .image, #start-button, #back-button, #leaderboard-button, #leaderboard-background {
+    .spaceship, .spaceshipflip, .image, .images {
         display: none;
     }
 </style>
@@ -28,10 +28,15 @@ if (isset($_SESSION["id"])){
                 <h1>Ship Destroyer</h1>
                 <canvas id="canvas" width="700px" height="500px"></canvas>
             </div>
-            <img src="assets/Buttons/start_button.png" id="start-button">
-            <img src="assets/Buttons/back_button.png" id="back-button">
-            <img src="assets/Buttons/leaderboard_button.png" id="leaderboard-button">
-            <img src="assets/Ship Destroyer/Ship_Destroyer_Leaderboard.png" id="leaderboard-background">
+            <div class="images">
+                <img src="assets/Buttons/start_button.png" id="start-button">
+                <img src="assets/Buttons/back_button.png" id="back-button">
+                <img src="assets/Buttons/leaderboard_button.png" id="leaderboard-button">
+                <img src="assets/Buttons/continue_button.png" id="continue-button">
+                <img src="assets/Buttons/restart_button.png" id="restart-button">
+                <img src="assets/Buttons/home_button.png" id="home-button">
+                <img src="assets/Ship Destroyer/Ship_Destroyer_Leaderboard.png" id="leaderboard-background">
+            </div>
             <div class="spaceship">
                 <img id="ship" src="assets/Ship Destroyer/Foozle_2DS0011_Void_MainShip/Main Ship/Main Ship - Bases/PNGs/Main Ship - Base - Very damaged.png">
                 <img id="ship" src="assets/Ship Destroyer/Foozle_2DS0011_Void_MainShip/Main Ship/Main Ship - Bases/PNGs/Main Ship - Base - Damaged.png">

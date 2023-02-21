@@ -21,6 +21,9 @@ function ColorBallFlap(selectedColor) {
     const startButton = document.getElementById("start-button");
     const backButton = document.getElementById("back-button");
     const leaderboardButton = document.getElementById("leaderboard-button");
+    const continueButton = document.getElementById("continue-button");
+    const restartButton = document.getElementById("restart-button");
+    const homeButton = document.getElementById("home-button");
     const leaderboardBackground = document.getElementById("leaderboard-background");
     let menuSound = new Audio("assets/ColorBall Flap/Audio/Menu Audio/08 - Bouncing Baal v0_95.mp3");
     let gameSound = new Audio("assets/ColorBall Flap/Audio/Game Audio/gypsyTrial8Techno.wav");
@@ -31,6 +34,8 @@ function ColorBallFlap(selectedColor) {
     let switchToGame = true;
     let switchToMenu = true;
     let switchToHighscore = true;
+    let switchToPause = true;
+    let continued = true;
 
     function saveToDatabase() {
         const colorNumber = selectedColor;
@@ -61,6 +66,85 @@ function ColorBallFlap(selectedColor) {
         new Color('pink', ['pink', 'blue', 'purple', 'green'])
     ];
 
+    class Pause {
+        constructor(cwidth, cheight) {
+            this.cwidth = cwidth;
+            this.cheight = cheight;
+            this.x = this.cwidth / 2;
+            this.y = this.cheight / 2;
+            this.background = new Background('#262626', '#1a1a1a', this.cwidth, this.cheight);
+            this.continueButton = {
+                image: continueButton,
+                width: 40,
+                height: 40,
+                x: this.cwidth - 60,
+                y: 20
+            };
+            this.restartButton = {
+                image: restartButton,
+                width: 40,
+                height: 40,
+                x: this.cwidth - 60,
+                y: 70
+            };
+            this.homeButton = {
+                image: homeButton,
+                width: 40,
+                height: 40,
+                x: this.cwidth - 60,
+                y: 120
+            };
+        }
+
+        render() {
+            this.background.draw();
+            ctx.drawImage(this.continueButton.image, this.continueButton.x, this.continueButton.y, this.continueButton.width, this.continueButton.height);
+            ctx.drawImage(this.restartButton.image, this.restartButton.x, this.restartButton.y, this.restartButton.width, this.restartButton.height);
+            ctx.drawImage(this.homeButton.image, this.homeButton.x, this.homeButton.y, this.homeButton.width, this.homeButton.height);
+
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 40px impact';
+            ctx.fillText('PAUSED', this.x, this.y);
+        }
+
+        handleClick(x, y) {
+            if (x > this.continueButton.x && 
+                x < this.continueButton.x + this.continueButton.width && 
+                y > this.continueButton.y && 
+                y < this.continueButton.y + this.continueButton.height
+            ) {
+                buttonSound.pause();
+                buttonSound.currentTime = 0;
+                buttonSound.play();
+                continued = false;
+                state = 1;
+            }
+
+            if (x > this.restartButton.x && 
+                x < this.restartButton.x + this.restartButton.width && 
+                y > this.restartButton.y && 
+                y < this.restartButton.y + this.restartButton.height
+            ) {
+                buttonSound.pause();
+                buttonSound.currentTime = 0;
+                buttonSound.play();
+                state = 1;
+            }
+            
+            if (x > this.homeButton.x && 
+                x < this.homeButton.x + this.homeButton.width && 
+                y > this.homeButton.y && 
+                y < this.homeButton.y + this.homeButton.height
+            ) {
+                buttonSound.pause();
+                buttonSound.currentTime = 0;
+                buttonSound.play();
+                state = 2;
+            }
+        }
+    }
+
     class Highscore {
         constructor(data, cwidth, cheight) {
             this.x = 260;
@@ -84,7 +168,7 @@ function ColorBallFlap(selectedColor) {
             ctx.drawImage(this.backButton.image, this.backButton.x, this.backButton.y, this.backButton.width, this.backButton.height);
 
             ctx.fillStyle = 'white';
-            ctx.font = '14px sans-serif';
+            ctx.font = '14px impact';
             for(let i = 0; i < this.data.length; i++) {
                 ctx.textAlign = 'left';
                 ctx.fillText(this.data[i].username.toUpperCase(), this.x, this.y + i * 30);
@@ -136,8 +220,8 @@ function ColorBallFlap(selectedColor) {
             
             ctx.fillStyle = 'white';
 
-            ctx.font = 'bold 40px arial';
-            ctx.fillText('ColorBall Flap', this.x, this.y - 100);
+            ctx.font = 'bold 40px impact';
+            ctx.fillText('COLORBALL FLAP', this.x, this.y - 100);
 
             ctx.beginPath();
             ctx.moveTo(this.x - 75, this.y);
@@ -158,7 +242,7 @@ function ColorBallFlap(selectedColor) {
 
             ctx.drawImage(this.leaderboardButton.image, this.leaderboardButton.x, this.leaderboardButton.y, this.leaderboardButton.width, this.leaderboardButton.height);
             ctx.drawImage(this.startButton.image, this.startButton.x - this.startButton.width / 2, this.startButton.y - this.startButton.height / 2, this.startButton.width, this.startButton.height);
-            ctx.font = 'bold 20px arial';
+            ctx.font = 'bold 20px impact';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
         }
@@ -218,6 +302,13 @@ function ColorBallFlap(selectedColor) {
             this.background = new Background('#262626', '#1a1a1a', this.cwidth, this.cheight);
             this.obstacles = [];
             this.obstacleY = this.cheight - 450;
+            this.backButton = {
+                image: backButton,
+                x: this.cwidth - 60,
+                y: 20,
+                width: 40,
+                height: 40
+            }
         }
         update() {
             this.ball.update();
@@ -239,7 +330,9 @@ function ColorBallFlap(selectedColor) {
                 object.draw(this.camera);
             });
 
-            ctx.font = '20px sans-serif';
+            ctx.drawImage(this.backButton.image, this.backButton.x, this.backButton.y, this.backButton.width, this.backButton.height);
+
+            ctx.font = '20px impact';
             ctx.fillStyle = "white";
             ctx.fillText(score, this.cwidth / 2, 30);
         }
@@ -288,6 +381,20 @@ function ColorBallFlap(selectedColor) {
             this.obstacleY = this.cheight - 450;
             this.createObstacle();
             this.obstacleY -= 200;
+        }
+        handleClick(x, y) {
+            if (x > this.backButton.x && 
+                x < this.backButton.x + this.backButton.width && 
+                y > this.backButton.y && 
+                y < this.backButton.y + this.backButton.height
+            ) {
+                buttonSound.pause();
+                buttonSound.currentTime = 0;
+                buttonSound.play();
+                state = 4;
+            } else {
+                this.ball.flap();
+            }
         }
     }
 
@@ -434,6 +541,7 @@ function ColorBallFlap(selectedColor) {
     const mygame = new Game(canvas.width, canvas.height);
     const mymenu = new Menu(canvas.width / 2, canvas.height / 2, canvas.width, canvas.height);
     let myhighscore;
+    const mypause = new Pause(canvas.width, canvas.height);
 
     function setHighscore(data) {
         myhighscore = new Highscore(data, canvas.width, canvas.height);
@@ -478,18 +586,28 @@ function ColorBallFlap(selectedColor) {
         myhighscore.render();
     }
 
+    function renderPause() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        mypause.render();
+    }
+
     function animate() {
         switch(state) {
             case 1:
                 if(switchToGame) {
-                    mygame.resetGame();
+                    if(continued) {
+                        mygame.resetGame();
+                        gameSound.currentTime = 0;
+                    }
                     gameSound.play();
                     gameSound.addEventListener("ended", function() {
                         gameSound.currentTime = 0;
                         gameSound.play();
                     });
                     switchToGame = false;
+                    continued = true;
                 }
+                switchToPause = true;
                 switchToHighscore = true;
                 switchToMenu = true;
                 renderGame();
@@ -503,6 +621,7 @@ function ColorBallFlap(selectedColor) {
                     menuSound.currentTime = 0;
                     switchToMenu = false;
                 }
+                switchToPause = true;
                 switchToHighscore = true;
                 switchToGame = true;
                 renderMenu();
@@ -516,29 +635,42 @@ function ColorBallFlap(selectedColor) {
                     });
                     switchToHighscore = false;
                 }
+                switchToPause = true;
                 switchToMenu = true;
                 switchToGame = true;
                 renderHighscore();
+                break;
+            case 4:
+                if(switchToPause) {
+                    gameSound.pause();
+                    switchToPause = false;
+                }
+                switchToHighscore = true;
+                switchToMenu = true;
+                switchToGame = true;
+                renderPause();
                 break;
         }
         requestAnimationFrame(animate);
     }
 
-    canvas.addEventListener("click", function () {
-        if (state == 1) {
-            mygame.ball.flap();
-        }
-    });
-
     canvas.addEventListener('click', event => {
         const rect = canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
-        if (state == 2) {
-            mymenu.handleClick(x, y);
-        }
-        if (state == 3) {
-            myhighscore.handleClick(x, y);
+        switch(state) {
+            case 1:
+                mygame.handleClick(x, y);
+                break;
+            case 2:
+                mymenu.handleClick(x, y);
+                break;
+            case 3:
+                myhighscore.handleClick(x, y);
+                break;
+            case 4:
+                mypause.handleClick(x, y);
+                break;
         }
     });
 

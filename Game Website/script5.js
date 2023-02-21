@@ -27,6 +27,9 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
     const backButton = document.getElementById("back-button");
     const leaderboardButton = document.getElementById("leaderboard-button");
     const settingsButton = document.getElementById("settings-button");
+    const continueButton = document.getElementById("continue-button");
+    const restartButton = document.getElementById("restart-button");
+    const homeButton = document.getElementById("home-button");
     const leaderboardBackground = document.getElementById("leaderboard-background");
     let menuSound = new Audio("assets/Cube Jump/Audio/Menu Audio/Decision.mp3");
     let gameSound = new Audio("assets/Cube Jump/Audio/Game Audio/Theme Song 8-bit V1 _looping.wav");
@@ -39,6 +42,8 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
     let switchToHighscore = true;
     let switchToSettings = true;
     let markForJump = false;
+    let switchToPause = true;
+    let continued = true;
 
     function saveToDatabase() {
         const xhr = new XMLHttpRequest();
@@ -68,6 +73,85 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
         grounds[i].src = `assets/Cube Jump/Grounds/groundSquare_0${i + 1}_001-hd.png`;
     }
 
+    class Pause {
+        constructor(cwidth, cheight) {
+            this.cwidth = cwidth;
+            this.cheight = cheight;
+            this.x = this.cwidth / 2;
+            this.y = this.cheight / 2;
+            this.background = new Background(this.cwidth, this.cheight);
+            this.continueButton = {
+                image: continueButton,
+                width: 40,
+                height: 40,
+                x: this.cwidth - 60,
+                y: 20
+            };
+            this.restartButton = {
+                image: restartButton,
+                width: 40,
+                height: 40,
+                x: this.cwidth - 60,
+                y: 70
+            };
+            this.homeButton = {
+                image: homeButton,
+                width: 40,
+                height: 40,
+                x: this.cwidth - 60,
+                y: 120
+            };
+        }
+
+        render() {
+            this.background.draw();
+            ctx.drawImage(this.continueButton.image, this.continueButton.x, this.continueButton.y, this.continueButton.width, this.continueButton.height);
+            ctx.drawImage(this.restartButton.image, this.restartButton.x, this.restartButton.y, this.restartButton.width, this.restartButton.height);
+            ctx.drawImage(this.homeButton.image, this.homeButton.x, this.homeButton.y, this.homeButton.width, this.homeButton.height);
+
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 40px impact';
+            ctx.fillText('PAUSED', this.x, this.y);
+        }
+
+        handleClick(x, y) {
+            if (x > this.continueButton.x && 
+                x < this.continueButton.x + this.continueButton.width && 
+                y > this.continueButton.y && 
+                y < this.continueButton.y + this.continueButton.height
+            ) {
+                buttonSound.pause();
+                buttonSound.currentTime = 0;
+                buttonSound.play();
+                continued = false;
+                state = 1;
+            }
+
+            if (x > this.restartButton.x && 
+                x < this.restartButton.x + this.restartButton.width && 
+                y > this.restartButton.y && 
+                y < this.restartButton.y + this.restartButton.height
+            ) {
+                buttonSound.pause();
+                buttonSound.currentTime = 0;
+                buttonSound.play();
+                state = 1;
+            }
+            
+            if (x > this.homeButton.x && 
+                x < this.homeButton.x + this.homeButton.width && 
+                y > this.homeButton.y && 
+                y < this.homeButton.y + this.homeButton.height
+            ) {
+                buttonSound.pause();
+                buttonSound.currentTime = 0;
+                buttonSound.play();
+                state = 2;
+            }
+        }
+    }
+
     class Settings {
         constructor(x, y, cwidth, cheight) {
             this.x = x;
@@ -88,11 +172,11 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
         render() {
             this.background.draw();
 
-            ctx.font = 'bold 40px arial';
+            ctx.font = 'bold 40px impact';
             ctx.textAlign = 'center';
             ctx.fillStyle = 'black';
 
-            ctx.fillText('Background', this.x, this.y1 - 65);
+            ctx.fillText('BACKGROUND', this.x, this.y1 - 65);
             ctx.beginPath();
             ctx.moveTo(this.x - 75, this.y1);
             ctx.lineTo(this.x - 50, this.y1 - 25);
@@ -105,7 +189,7 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
             ctx.lineTo(this.x + 50, this.y1 + 25);
             ctx.fill();
 
-            ctx.fillText('Ground', this.x, this.y2 - 65);
+            ctx.fillText('GROUND', this.x, this.y2 - 65);
             ctx.beginPath();
             ctx.moveTo(this.x - 75, this.y2);
             ctx.lineTo(this.x - 50, this.y2 - 25);
@@ -201,7 +285,7 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
             ctx.drawImage(this.backButton.image, this.backButton.x, this.backButton.y, this.backButton.width, this.backButton.height);
 
             ctx.fillStyle = 'white';
-            ctx.font = '14px sans-serif';
+            ctx.font = '14px impact';
             for(let i = 0; i < this.data.length; i++) {
                 ctx.textAlign = 'left';
                 ctx.fillText(this.data[i].username.toUpperCase(), this.x, this.y + i * 30);
@@ -260,8 +344,8 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
             
             ctx.fillStyle = 'black';
 
-            ctx.font = 'bold 40px arial';
-            ctx.fillText('Cube Jump', this.x, this.y - 100);
+            ctx.font = 'bold 40px impact';
+            ctx.fillText('CUBE JUMP', this.x, this.y - 100);
 
             ctx.beginPath();
             ctx.moveTo(this.x - 75, this.y);
@@ -280,7 +364,7 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
             ctx.drawImage(this.leaderboardButton.image, this.leaderboardButton.x, this.leaderboardButton.y, this.leaderboardButton.width, this.leaderboardButton.height);
             ctx.drawImage(this.settingsButton.image, this.settingsButton.x, this.settingsButton.y, this.settingsButton.width, this.settingsButton.height);
             ctx.drawImage(this.startButton.image, this.startButton.x - this.startButton.width / 2, this.startButton.y - this.startButton.height / 2, this.startButton.width, this.startButton.height);
-            ctx.font = 'bold 20px arial';
+            ctx.font = 'bold 20px impact';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
         }
@@ -354,6 +438,13 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
             this.combineArrays();
             this.obstacles = [];
             this.obstacleNumber = 0;
+            this.backButton = {
+                image: backButton,
+                x: this.cwidth - 60,
+                y: 20,
+                width: 40,
+                height: 40
+            }
         }
         update() {
             this.cube.update();
@@ -373,8 +464,10 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
             this.obstacles.forEach(object => {
                 object.draw(this.camera);
             });
+
+            ctx.drawImage(this.backButton.image, this.backButton.x, this.backButton.y, this.backButton.width, this.backButton.height);
             
-            ctx.font = '20px sans-serif';
+            ctx.font = '20px impact';
             ctx.fillStyle = "white";
             ctx.fillText(score, this.cwidth / 2, 30);
         }
@@ -435,7 +528,6 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
         }
         
         jump() {
-            console.log("Is this works");
             this.obstacles.forEach(obstacle => {
                 obstacle.blocks.forEach(block => {
                     if (
@@ -469,6 +561,21 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
             }
             this.obstacles = this.obstacles.filter(() => false);
             this.createObstacle();
+        }
+
+        handleClick(x, y) {
+            if (x > this.backButton.x && 
+                x < this.backButton.x + this.backButton.width && 
+                y > this.backButton.y && 
+                y < this.backButton.y + this.backButton.height
+            ) {
+                buttonSound.pause();
+                buttonSound.currentTime = 0;
+                buttonSound.play();
+                state = 5;
+            } else {
+                this.jump();
+            }
         }
     }
 
@@ -727,6 +834,7 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
     const mymenu = new Menu(canvas.width / 2, canvas.height / 2, canvas.width, canvas.height);
     let myhighscore;
     const mysettings = new Settings(canvas.width / 2, canvas.height / 2, canvas.width, canvas.height);
+    const mypause = new Pause(canvas.width, canvas.height);
 
     function setHighscore(data) {
         myhighscore = new Highscore(data, canvas.width, canvas.height);
@@ -776,19 +884,28 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
         mysettings.render();
     }
 
+    function renderPause() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        mypause.render();
+    }
+
     function animate() {
         switch(state) {
             case 1:
                 if(switchToGame) {
-                    mygame.resetGame();
+                    if(continued) {
+                        mygame.resetGame();
+                        gameSound.currentTime = 0;
+                    }
                     gameSound.play();
                     gameSound.addEventListener("ended", function() {
                         gameSound.currentTime = 0;
                         gameSound.play();
                     });
                     switchToGame = false;
+                    continued = true;
                 }
-                switchToSettings = true;
+                switchToPause = true;
                 switchToHighscore = true;
                 switchToMenu = true;
                 renderGame();
@@ -802,7 +919,7 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
                     menuSound.currentTime = 0;
                     switchToMenu = false;
                 }
-                switchToSettings = true;
+                switchToPause = true;
                 switchToHighscore = true;
                 switchToGame = true;
                 renderMenu();
@@ -816,7 +933,7 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
                     });
                     switchToHighscore = false;
                 }
-                switchToSettings = true;
+                switchToPause = true;
                 switchToMenu = true;
                 switchToGame = true;
                 renderHighscore();
@@ -835,28 +952,40 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
                 switchToGame = true;
                 renderSettings();
                 break;
+            case 5:
+                if(switchToPause) {
+                    gameSound.pause();
+                    switchToPause = false;
+                }
+                switchToHighscore = true;
+                switchToMenu = true;
+                switchToGame = true;
+                renderPause();
+                break;
         }
         requestAnimationFrame(animate);
     }
-    
-    canvas.addEventListener("click", function () {
-        if (state == 1) {
-            mygame.jump();
-        }
-    });
 
     canvas.addEventListener('click', event => {
         const rect = canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
-        if (state == 2) {
-            mymenu.handleClick(x, y);
-        }
-        if (state == 3) {
-            myhighscore.handleClick(x, y);
-        }
-        if (state == 4) {
-            mysettings.handleClick(x, y);
+        switch(state) {
+            case 1:
+                mygame.handleClick(x, y);
+                break;
+            case 2:
+                mymenu.handleClick(x, y);
+                break;
+            case 3:
+                myhighscore.handleClick(x, y);
+                break;
+            case 4:
+                mysettings.handleClick(x, y);
+                break;
+            case 5:
+                mypause.handleClick(x, y);
+                break;
         }
     });
 

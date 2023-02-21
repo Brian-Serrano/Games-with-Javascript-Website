@@ -15,7 +15,7 @@ if (isset($_SESSION["id"])){
     <title>Document</title>
 </head>
 <style>
-    .balloons, #theme, .image1, .image2, .image3, #start-button, #back-button, #leaderboard-button, #leaderboard-background {
+    .image1, .image2, .image3, .images, .balloons {
         display: none;
     }
 </style>
@@ -28,13 +28,18 @@ if (isset($_SESSION["id"])){
                 <h1>Balloon Pop</h1>
                 <canvas id="canvas" width="700px" height="500px"></canvas>
             </div>
-            <img src="assets/Balloon Pop/m4/PRE_ORIG_SIZE.png" id="theme">
-            <img src="assets/Balloon Pop/m7/PRE_ORIG_SIZE.png" id="theme">
-            <img src="assets/Balloon Pop/m8/PRE_ORIG_SIZE.png" id="theme">
-            <img src="assets/Buttons/start_button.png" id="start-button">
-            <img src="assets/Buttons/back_button.png" id="back-button">
-            <img src="assets/Buttons/leaderboard_button.png" id="leaderboard-button">
-            <img src="assets/Balloon Pop/Balloon_Pop_Leaderboard.png" id="leaderboard-background">
+            <div class="images">
+                <img src="assets/Balloon Pop/m4/PRE_ORIG_SIZE.png" id="theme">
+                <img src="assets/Balloon Pop/m7/PRE_ORIG_SIZE.png" id="theme">
+                <img src="assets/Balloon Pop/m8/PRE_ORIG_SIZE.png" id="theme">
+                <img src="assets/Buttons/start_button.png" id="start-button">
+                <img src="assets/Buttons/back_button.png" id="back-button">
+                <img src="assets/Buttons/leaderboard_button.png" id="leaderboard-button">
+                <img src="assets/Buttons/continue_button.png" id="continue-button">
+                <img src="assets/Buttons/restart_button.png" id="restart-button">
+                <img src="assets/Buttons/home_button.png" id="home-button">
+                <img src="assets/Balloon Pop/Balloon_Pop_Leaderboard.png" id="leaderboard-background">
+            </div>
             <div class="balloons">
                 <img id="bln" src="assets/Balloon Pop/balloons/balloon_blue.png">
                 <img id="bln" src="assets/Balloon Pop/balloons/balloon_green.png">
