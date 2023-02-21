@@ -7,6 +7,7 @@ Use the left and right arrows to move the basket. Catch as many fruits as you ca
 2. There is leaderboard where you can compete with other players
 3. Cool sound effects
 4. It will automatically save your selected theme if you leave the game
+5. You can pause the game
 ### Limitations
 You can’t play it in mobile
 ## Balloon Pop
@@ -17,6 +18,7 @@ Click the balloons to pop them. Pop as many balloons as you can without missing 
 2. There is leaderboard where you can compete with other players
 3. Cool sound effects
 4. It will automatically save your selected theme if you leave the game
+5. You can pause the game
 ### Limitations
 You can’t play it in mobile
 ## Ship Destroyer
@@ -27,6 +29,7 @@ Use the mouse to drag your ship. Destroy as many ships as you can without being 
 2. There is leaderboard where you can compete with other players
 3. Cool sound effects
 4. It will automatically save your selected weapon if you leave the game
+5. You can pause the game
 ### Limitations
 You can’t play it in mobile
 ## ColorBall Flap
@@ -37,6 +40,7 @@ Click the mouse to flap the ball up. Make sure to hit the ball with the same col
 2. There is leaderboard where you can compete with other players
 3. Cool sound effects
 4. It will automatically save your selected color of ball if you leave the game
+5. You can pause the game
 ### Limitations
 You can’t play it in mobile
 ## Cube Jump
@@ -47,6 +51,7 @@ Click the mouse to jump the icon. Avoid the spikes and thorns. Get as far as you
 2. There is leaderboard where you can compete with other players
 3. Cool sound effects
 4. It will automatically save your selected icons, backgrounds and grounds if you leave the game
+5. You can pause the game
 ### Limitations
 You can’t play it in mobile
 
