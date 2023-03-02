@@ -453,6 +453,9 @@ function CubeJump(selectedIcon, selectedBackground, selectedGround) {
             if(this.cube.obstacleCreation >= 1440){
                 this.obstacleNumber += 1;
                 this.createObstacle();
+                if(this.obstacles.length >= 3) {
+                    this.obstacles = this.obstacles.slice(1);
+                }
                 this.cube.obstacleCreation -= 1440;
             }
             this.collision();
